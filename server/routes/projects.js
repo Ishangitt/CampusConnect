@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const { title, description, category, requiredSkills, teamSize, deadline } = req.body;
+    const { title, description, category, requiredSkills, teamSize, deadline, whatsappNumber } = req.body;
 
     if (!title || !description || !category || !teamSize || !deadline) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -32,6 +32,7 @@ router.post("/", async (req, res) => {
       description,
       category,
       requiredSkills: skills,
+      whatsappNumber: whatsappNumber ? String(whatsappNumber).trim() : "",
       creatorId: req.dbUser._id,
       members: [req.dbUser._id],
       teamSize: size,
@@ -73,6 +74,14 @@ router.get("/:id", async (req, res) => {
 
   if (!project) {
     return res.status(404).json({ message: "Project not found" });
+  }
+
+  // Only expose whatsappNumber to team members
+  const isMember = project.members.some(
+    (m) => (m._id || m).toString() === req.dbUser._id.toString()
+  );
+  if (!isMember) {
+    delete project.whatsappNumber;
   }
 
   const existingRequest = await JoinRequest.findOne({

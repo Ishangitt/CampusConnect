@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Users, Phone } from "lucide-react";
 import api from "../api/client.js";
 import Loader from "../components/Loader.jsx";
 import SkillBadges from "../components/SkillBadges.jsx";
@@ -125,6 +125,22 @@ export default function ProjectDetails() {
       </div>
 
       <aside className="space-y-6">
+        {isMember && project.whatsappNumber ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-emerald-800">
+              <Phone size={18} /> WhatsApp Contact
+            </h2>
+            <p className="mt-2 text-sm text-emerald-700">{project.whatsappNumber}</p>
+            <a
+              href={`https://wa.me/${project.whatsappNumber.replace(/[^\d+]/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            >
+              Message on WhatsApp
+            </a>
+          </div>
+        ) : null}
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold">{match.percent}% Skill Match</h2>
           <p className="mt-1 text-sm text-slate-500">Exact match against the project's required skills.</p>

@@ -6,6 +6,7 @@ const projectSchema = new mongoose.Schema(
     description: { type: String, required: true },
     category: { type: String, required: true },
     requiredSkills: { type: [String], default: [] },
+    whatsappNumber: { type: String, default: "", trim: true },
     creatorId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     teamSize: { type: Number, required: true, min: 2 },

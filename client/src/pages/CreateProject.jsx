@@ -13,6 +13,7 @@ export default function CreateProject() {
     requiredSkills: [],
     teamSize: 4,
     deadline: "",
+    whatsappNumber: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -103,6 +104,16 @@ export default function CreateProject() {
             />
           </label>
         </div>
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium">WhatsApp number <span className="font-normal text-slate-400">(visible to team members only)</span></span>
+          <input
+            type="tel"
+            placeholder="e.g. +91 98765 43210"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+            value={form.whatsappNumber}
+            onChange={(e) => update("whatsappNumber", e.target.value)}
+          />
+        </label>
         <button
           type="submit"
           disabled={saving}
