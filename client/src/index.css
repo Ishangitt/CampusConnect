@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+}
+
+.cl-card,
+.cl-socialButtonsBlockButton,
+.cl-formButtonPrimary {
+  border-radius: 12px !important;
+}

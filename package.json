@@ -1,0 +1,13 @@
+{
+  "name": "campusconnect",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Campus collaboration platform for college students",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "install:all": "npm install --prefix server && npm install --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
