@@ -17,7 +17,7 @@ export default function SignInPage() {
         <p className="text-sm text-indigo-200">A simple campus collaboration platform.</p>
       </div>
       <div className="flex items-center justify-center p-6">
-        <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" afterSignInUrl="/dashboard" />
+        <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" fallbackRedirectUrl="/dashboard" />
       </div>
     </div>
   );

@@ -42,8 +42,8 @@ export default function App() {
     <BrowserRouter>
       <ApiSetup />
       <Routes>
-        <Route path="/sign-in" element={<SignInPage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route path="/sign-in/*" element={<SignInPage />} />
+        <Route path="/sign-up/*" element={<SignUpPage />} />
         <Route
           element={
             <Protected>

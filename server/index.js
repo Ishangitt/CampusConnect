@@ -11,6 +11,17 @@ import joinRequestRoutes from "./routes/joinRequests.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const isDummySecret =
+  !process.env.CLERK_SECRET_KEY ||
+  process.env.CLERK_SECRET_KEY === "sk_test_replace_me" ||
+  process.env.CLERK_SECRET_KEY.includes("replace_me");
+
+if (isDummySecret) {
+  console.warn(
+    "⚠️  CLERK_SECRET_KEY is missing or dummy — running with JWT-decode fallback (dev mode)"
+  );
+}
+
 app.use(
   cors({
     origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
@@ -22,9 +33,15 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.use("/api/users", clerkMiddleware(), requireClerkAuth, requireDbUser, userRoutes);
-app.use("/api/projects", clerkMiddleware(), requireClerkAuth, requireDbUser, projectRoutes);
-app.use("/api/join-requests", clerkMiddleware(), requireClerkAuth, requireDbUser, joinRequestRoutes);
+// Only attach clerkMiddleware when the secret key is valid.
+// When it's a dummy key, our requireClerkAuth does its own JWT decoding.
+const authChain = isDummySecret
+  ? [requireClerkAuth, requireDbUser]
+  : [clerkMiddleware(), requireClerkAuth, requireDbUser];
+
+app.use("/api/users", ...authChain, userRoutes);
+app.use("/api/projects", ...authChain, projectRoutes);
+app.use("/api/join-requests", ...authChain, joinRequestRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

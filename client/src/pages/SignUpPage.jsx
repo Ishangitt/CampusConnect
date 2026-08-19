@@ -17,7 +17,7 @@ export default function SignUpPage() {
         <p className="text-sm text-slate-400">No passwords stored in MongoDB.</p>
       </div>
       <div className="flex items-center justify-center p-6">
-        <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" afterSignUpUrl="/dashboard" />
+        <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" fallbackRedirectUrl="/dashboard" />
       </div>
     </div>
   );

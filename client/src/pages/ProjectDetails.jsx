@@ -45,9 +45,12 @@ export default function ProjectDetails() {
   if (loading) return <Loader label="Loading project..." />;
   if (!project) return <p className="rounded-xl bg-rose-50 p-4 text-rose-700">{error || "Project not found"}</p>;
 
-  const myId = me?._id;
-  const isOwner = project.creatorId?._id === myId;
-  const isMember = project.members?.some((m) => m._id === myId);
+  const myId = me?._id?.toString();
+  const ownerId = (project.creatorId?._id || project.creatorId)?.toString();
+  const isOwner = Boolean(myId && ownerId && myId === ownerId);
+  const isMember = Boolean(
+    myId && project.members?.some((m) => (m._id || m)?.toString() === myId)
+  );
   const match = getSkillMatch(me?.skills || [], project.requiredSkills || []);
 
   let action = null;

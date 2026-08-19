@@ -12,7 +12,7 @@ const links = [
 export default function Layout() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <header className="glass-header sticky top-0 z-20 border-b border-slate-200/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <Link to="/dashboard" className="flex items-center gap-2 font-semibold text-slate-900">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white">

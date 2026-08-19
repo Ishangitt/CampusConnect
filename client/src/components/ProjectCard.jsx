@@ -11,7 +11,7 @@ export default function ProjectCard({ project }) {
   return (
     <Link
       to={`/projects/${project._id}`}
-      className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="card-hover block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="text-lg font-semibold text-slate-900">{project.title}</h3>
