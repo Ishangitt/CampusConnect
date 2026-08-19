@@ -22,9 +22,28 @@ if (isDummySecret) {
   );
 }
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.CLIENT_ORIGIN,
+]
+  .filter(Boolean)
+  .map((o) => o.trim().replace(/\/+$/, ""));
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const clean = origin.trim().replace(/\/+$/, "");
+      if (
+        allowedOrigins.includes(clean) ||
+        clean.endsWith(".vercel.app") ||
+        clean.includes("localhost")
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );

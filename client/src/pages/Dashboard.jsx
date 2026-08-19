@@ -35,7 +35,28 @@ export default function Dashboard() {
   }, []);
 
   if (loading) return <Loader label="Loading dashboard..." />;
-  if (error) return <p className="rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>;
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
+        <p className="font-medium text-rose-800">{error}</p>
+        <p className="mt-1 text-xs text-rose-600">If your backend is waking up, please wait a moment and try again.</p>
+        <button
+          onClick={() => {
+            setLoading(true);
+            setError("");
+            api.get("/users/me/dashboard")
+              .then((res) => setData(res.data))
+              .catch((err) => setError(err.response?.data?.message || "Failed to load dashboard"))
+              .finally(() => setLoading(false));
+          }}
+          className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+  if (!data || !data.user) return <Loader label="Loading dashboard..." />;
 
   const name = data.user.name || "Student";
 

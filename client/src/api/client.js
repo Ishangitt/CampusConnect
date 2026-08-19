@@ -1,7 +1,12 @@
 import axios from "axios";
 
+let rawBaseUrl = (import.meta.env.VITE_API_URL || "/api").trim().replace(/\/+$/, "");
+if (rawBaseUrl.startsWith("http") && !rawBaseUrl.endsWith("/api")) {
+  rawBaseUrl += "/api";
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL: rawBaseUrl,
 });
 
 let tokenGetter = async () => null;
