@@ -52,18 +52,15 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-// Only attach clerkMiddleware when the secret key is valid.
-// When it's a dummy key, our requireClerkAuth does its own JWT decoding.
-const authChain = isDummySecret
-  ? [requireClerkAuth, requireDbUser]
-  : [clerkMiddleware(), requireClerkAuth, requireDbUser];
+// Middleware chain for protected routes
+const authChain = [requireClerkAuth, requireDbUser];
 
 app.use("/api/users", ...authChain, userRoutes);
 app.use("/api/projects", ...authChain, projectRoutes);
 app.use("/api/join-requests", ...authChain, joinRequestRoutes);
 
 app.use((err, _req, res, _next) => {
-  console.error(err);
+  console.error("Global express error:", err);
   res.status(err.status || 500).json({ message: err.message || "Server error" });
 });
 
