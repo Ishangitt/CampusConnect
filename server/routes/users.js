@@ -24,6 +24,43 @@ router.get("/me", async (req, res) => {
   }
 });
 
+router.get("/me/notifications", async (req, res) => {
+  try {
+    const userId = req.dbUser._id;
+
+    // Get all projects owned by this user
+    const ownedProjects = await Project.find({ creatorId: userId }).select("_id title").lean();
+    const projectIds = ownedProjects.map((p) => p._id);
+
+    if (projectIds.length === 0) {
+      return res.json({ notifications: [], count: 0 });
+    }
+
+    // Get all pending join requests for those projects
+    const pendingRequests = await JoinRequest.find({
+      projectId: { $in: projectIds },
+      status: "pending",
+    })
+      .populate("studentId", "name email college branch year skills")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Attach project title to each request
+    const projectMap = {};
+    ownedProjects.forEach((p) => { projectMap[p._id.toString()] = p.title; });
+
+    const notifications = pendingRequests.map((req) => ({
+      ...req,
+      projectTitle: projectMap[req.projectId.toString()] || "Unknown project",
+    }));
+
+    res.json({ notifications, count: notifications.length });
+  } catch (err) {
+    console.error("GET /api/users/me/notifications error:", err);
+    res.status(500).json({ message: "Failed to load notifications" });
+  }
+});
+
 router.get("/me/dashboard", async (req, res) => {
   try {
     const userId = req.dbUser._id;
@@ -38,13 +75,30 @@ router.get("/me/dashboard", async (req, res) => {
       Project.countDocuments({ members: userId }),
     ]);
 
+    // Get pending request counts per created project
+    const projectIds = (createdProjects || []).map((p) => p._id);
+    const pendingCounts = projectIds.length
+      ? await JoinRequest.aggregate([
+          { $match: { projectId: { $in: projectIds }, status: "pending" } },
+          { $group: { _id: "$projectId", count: { $sum: 1 } } },
+        ])
+      : [];
+
+    const pendingCountMap = {};
+    pendingCounts.forEach(({ _id, count }) => {
+      pendingCountMap[_id.toString()] = count;
+    });
+
     res.json({
       user: req.dbUser,
       metrics: {
         projectsCreated: createdCount,
         activeMemberships: membershipCount,
       },
-      createdProjects: createdProjects || [],
+      createdProjects: (createdProjects || []).map((p) => ({
+        ...p,
+        pendingRequestsCount: pendingCountMap[p._id.toString()] || 0,
+      })),
       applications: (applications || []).map((app) => ({
         _id: app._id,
         status: app.status,

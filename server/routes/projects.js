@@ -154,4 +154,26 @@ router.get("/:id/requests", async (req, res) => {
   res.json({ project, requests });
 });
 
+router.delete("/:id", async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    if (project.creatorId.toString() !== req.dbUser._id.toString()) {
+      return res.status(403).json({ message: "Only the owner can delete this project" });
+    }
+
+    // Cascade delete all join requests for this project
+    await JoinRequest.deleteMany({ projectId: project._id });
+    await project.deleteOne();
+
+    res.json({ message: "Project deleted successfully" });
+  } catch (error) {
+    console.error("delete project:", error);
+    res.status(500).json({ message: "Failed to delete project" });
+  }
+});
+
 export default router;

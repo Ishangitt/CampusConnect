@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { UserButton } from "@clerk/clerk-react";
 import { FolderKanban, GraduationCap, LayoutDashboard, Plus, User } from "lucide-react";
+import NotificationBell from "./NotificationBell.jsx";
 
 const links = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -14,22 +15,26 @@ export default function Layout() {
     <div className="min-h-screen bg-slate-50">
       <header className="glass-header sticky top-0 z-20 border-b border-slate-200/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+          {/* Logo */}
           <Link to="/dashboard" className="flex items-center gap-2 font-semibold text-slate-900">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white">
               <GraduationCap size={18} />
             </span>
-            CampusConnect
+            <span className="hidden sm:inline">CampusConnect</span>
           </Link>
+
+          {/* Desktop nav */}
           <nav className="hidden items-center gap-1 md:flex">
             {links.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
+                end={to === "/projects"}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     isActive
                       ? "bg-indigo-50 text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-100"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`
                 }
               >
@@ -38,25 +43,36 @@ export default function Layout() {
               </NavLink>
             ))}
           </nav>
-          <UserButton afterSignOutUrl="/sign-in" />
+
+          {/* Right side: bell + user */}
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <UserButton afterSignOutUrl="/sign-in" />
+          </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-2 md:hidden">
+
+        {/* Mobile bottom nav */}
+        <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-1.5 md:hidden">
           {links.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
+              end={to === "/projects"}
               className={({ isActive }) =>
-                `flex items-center gap-1 rounded-lg px-3 py-2 text-sm ${
-                  isActive ? "bg-indigo-50 text-indigo-700" : "text-slate-600"
+                `flex flex-1 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium transition-colors ${
+                  isActive
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-slate-500 hover:text-slate-900"
                 }`
               }
             >
-              <Icon size={14} />
+              <Icon size={16} />
               {label}
             </NavLink>
           ))}
         </nav>
       </header>
+
       <main className="mx-auto max-w-6xl px-4 py-8">
         <Outlet />
       </main>
