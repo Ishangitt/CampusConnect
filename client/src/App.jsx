@@ -9,8 +9,10 @@ import Profile from "./pages/Profile.jsx";
 import ProfileEdit from "./pages/ProfileEdit.jsx";
 import Projects from "./pages/Projects.jsx";
 import CreateProject from "./pages/CreateProject.jsx";
+import EditProject from "./pages/EditProject.jsx";
 import ProjectDetails from "./pages/ProjectDetails.jsx";
 import ProjectRequests from "./pages/ProjectRequests.jsx";
+import NotFound from "./pages/NotFound.jsx";
 
 function ApiSetup() {
   const { getToken } = useAuth();
@@ -57,10 +59,11 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/create" element={<CreateProject />} />
           <Route path="/projects/:id" element={<ProjectDetails />} />
+          <Route path="/projects/:id/edit" element={<EditProject />} />
           <Route path="/projects/:id/requests" element={<ProjectRequests />} />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

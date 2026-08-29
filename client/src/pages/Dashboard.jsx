@@ -300,6 +300,15 @@ export default function Dashboard() {
                     <Clock size={11} />
                     Applied {new Date(app.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                   </p>
+                  {/* Re-apply hint for rejected */}
+                  {app.status === "rejected" && app.projectId && (
+                    <Link
+                      to={`/projects/${app.projectId}`}
+                      className="mt-1 inline-block text-xs font-medium text-indigo-500 hover:text-indigo-700"
+                    >
+                      View project to re-apply →
+                    </Link>
+                  )}
                 </div>
                 <span
                   className={`flex-shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${statusStyles[app.status]}`}

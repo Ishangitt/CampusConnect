@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Calendar, ExternalLink, Phone, Trash2, Users } from "lucide-react";
+import { Calendar, ExternalLink, Pencil, Phone, Trash2, Users } from "lucide-react";
 import api from "../api/client.js";
 import Loader from "../components/Loader.jsx";
 import SkillBadges from "../components/SkillBadges.jsx";
@@ -18,6 +18,8 @@ export default function ProjectDetails() {
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   async function load() {
     const [projectRes, meRes] = await Promise.all([api.get(`/projects/${id}`), api.get("/users/me")]);
@@ -59,6 +61,19 @@ export default function ProjectDetails() {
     }
   }
 
+  async function leaveProject() {
+    setLeaving(true);
+    try {
+      await api.delete(`/projects/${id}/members/me`);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to leave project");
+      setShowLeaveModal(false);
+    } finally {
+      setLeaving(false);
+    }
+  }
+
   if (loading) return <Loader label="Loading project..." />;
   if (!project) return <p className="rounded-xl bg-rose-50 p-4 text-rose-700">{error || "Project not found"}</p>;
 
@@ -77,6 +92,12 @@ export default function ProjectDetails() {
           👑 Owner
         </span>
         <Link
+          to={`/projects/${id}/edit`}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
+        >
+          <Pencil size={15} /> Edit
+        </Link>
+        <Link
           to={`/projects/${id}/requests`}
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
         >
@@ -92,7 +113,17 @@ export default function ProjectDetails() {
       </div>
     );
   } else if (isMember) {
-    action = <span className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white">✓ You're a Member</span>;
+    action = (
+      <div className="flex flex-wrap gap-2">
+        <span className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white">✓ You're a Member</span>
+        <button
+          onClick={() => setShowLeaveModal(true)}
+          className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-100 transition-colors"
+        >
+          Leave
+        </button>
+      </div>
+    );
   } else if (joinRequest?.status === "pending") {
     action = <span className="rounded-xl bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800">⏳ Request Pending</span>;
   } else if (joinRequest?.status === "accepted") {
@@ -133,6 +164,19 @@ export default function ProjectDetails() {
           onConfirm={deleteProject}
           onCancel={() => setShowDeleteModal(false)}
           loading={deleting}
+          danger
+        />
+      )}
+
+      {/* Leave confirmation modal */}
+      {showLeaveModal && (
+        <ConfirmModal
+          title="Leave this project?"
+          message={`You will be removed from "${project.title}". You can re-apply later if the project is still open.`}
+          confirmLabel="Yes, Leave Project"
+          onConfirm={leaveProject}
+          onCancel={() => setShowLeaveModal(false)}
+          loading={leaving}
           danger
         />
       )}

@@ -1,25 +1,35 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, SlidersHorizontal } from "lucide-react";
 import api from "../api/client.js";
 import ProjectCard from "../components/ProjectCard.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import Loader from "../components/Loader.jsx";
 import { PROJECT_CATEGORIES } from "../constants/skills.js";
 
+const PAGE_SIZE = 12;
+
 export default function Projects() {
   const [projects, setProjects] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("All");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Reset to page 1 whenever search/filter changes
+    setPage(1);
+  }, [q, category]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await api.get("/projects", { params: { q, category } });
+        const res = await api.get("/projects", { params: { q, category, page, limit: PAGE_SIZE } });
         setProjects(res.data.projects);
+        setPagination(res.data.pagination);
         setError("");
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load projects");
@@ -29,7 +39,7 @@ export default function Projects() {
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [q, category]);
+  }, [q, category, page]);
 
   return (
     <div>
@@ -58,7 +68,7 @@ export default function Projects() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search projects by title..."
+            placeholder="Search by title or description..."
             className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
           />
         </div>
@@ -108,7 +118,9 @@ export default function Projects() {
       ) : (
         <>
           <p className="mb-4 text-sm text-slate-400">
-            Showing {projects.length} project{projects.length !== 1 ? "s" : ""}
+            {pagination
+              ? `Showing ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total} project${pagination.total !== 1 ? "s" : ""}`
+              : `${projects.length} project${projects.length !== 1 ? "s" : ""}`}
             {category !== "All" ? ` in "${category}"` : ""}
             {q ? ` matching "${q}"` : ""}
           </p>
@@ -117,6 +129,29 @@ export default function Projects() {
               <ProjectCard key={project._id} project={project} />
             ))}
           </div>
+
+          {/* Pagination controls */}
+          {pagination && pagination.totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={!pagination.hasPrev}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={16} /> Previous
+              </button>
+              <span className="text-sm text-slate-500">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={!pagination.hasNext}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
