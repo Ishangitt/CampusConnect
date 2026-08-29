@@ -8,7 +8,7 @@ const router = express.Router();
 // ── Create project ─────────────────────────────────────────────────────────
 router.post("/", async (req, res) => {
   try {
-    const { title, description, category, requiredSkills, teamSize, deadline, whatsappNumber } = req.body;
+    const { title, description, category, requiredSkills, teamSize, existingMembersCount, deadline, whatsappNumber } = req.body;
 
     if (!title || !description || !category || !teamSize || !deadline) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -28,6 +28,12 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Team size must be an integer of at least 2" });
     }
 
+    const existing = Math.max(0, parseInt(existingMembersCount, 10) || 0);
+    // existing + the creator slot (1) must not exceed teamSize
+    if (existing >= size) {
+      return res.status(400).json({ message: "Existing member count must be less than team size" });
+    }
+
     const deadlineDate = new Date(deadline);
     if (isNaN(deadlineDate.getTime()) || deadlineDate <= new Date()) {
       return res.status(400).json({ message: "Deadline must be a valid future date" });
@@ -36,6 +42,9 @@ router.post("/", async (req, res) => {
     if (whatsappNumber && !/^[+\d\s\-().]{7,20}$/.test(String(whatsappNumber).trim())) {
       return res.status(400).json({ message: "Invalid WhatsApp number format" });
     }
+
+    // Total filled = existing offline members + creator (1 platform member)
+    const totalFilled = existing + 1;
 
     const project = await Project.create({
       title,
@@ -46,7 +55,8 @@ router.post("/", async (req, res) => {
       creatorId: req.dbUser._id,
       members: [req.dbUser._id],
       teamSize: size,
-      isOpen: size > 1,
+      existingMembersCount: existing,
+      isOpen: totalFilled < size,
       deadline: deadlineDate,
     });
 
@@ -151,7 +161,7 @@ router.put("/:id", async (req, res) => {
       return res.status(403).json({ message: "Only the owner can edit this project" });
     }
 
-    const { title, description, category, requiredSkills, teamSize, deadline, whatsappNumber, isOpen } = req.body;
+    const { title, description, category, requiredSkills, teamSize, existingMembersCount, deadline, whatsappNumber, isOpen } = req.body;
 
     if (category && !PROJECT_CATEGORIES.includes(category)) {
       return res.status(400).json({ message: "Invalid category" });
@@ -176,6 +186,15 @@ router.put("/:id", async (req, res) => {
       project.teamSize = size;
     }
 
+    if (existingMembersCount !== undefined) {
+      const existing = Math.max(0, parseInt(existingMembersCount, 10) || 0);
+      const totalFilled = existing + project.members.length;
+      if (totalFilled >= project.teamSize) {
+        return res.status(400).json({ message: `Existing members + platform members (${totalFilled}) would meet or exceed team size (${project.teamSize}). Increase team size first.` });
+      }
+      project.existingMembersCount = existing;
+    }
+
     if (deadline !== undefined) {
       const deadlineDate = new Date(deadline);
       if (isNaN(deadlineDate.getTime())) {
@@ -195,16 +214,17 @@ router.put("/:id", async (req, res) => {
     if (title !== undefined) project.title = title;
     if (description !== undefined) project.description = description;
     if (isOpen !== undefined) {
-      // Allow manual toggle only if team isn't full
-      if (isOpen && project.members.length >= project.teamSize) {
+      const totalFilled = (project.existingMembersCount || 0) + project.members.length;
+      if (isOpen && totalFilled >= project.teamSize) {
         return res.status(400).json({ message: "Cannot reopen a full team. Increase team size first." });
       }
       project.isOpen = Boolean(isOpen);
     }
 
-    // Auto-recalculate isOpen based on members vs teamSize
-    if (teamSize !== undefined) {
-      project.isOpen = project.members.length < project.teamSize;
+    // Auto-recalculate isOpen based on total filled vs teamSize
+    if (teamSize !== undefined || existingMembersCount !== undefined) {
+      const totalFilled = (project.existingMembersCount || 0) + project.members.length;
+      project.isOpen = totalFilled < project.teamSize;
     }
 
     await project.save();

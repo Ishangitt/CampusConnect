@@ -12,6 +12,7 @@ export default function CreateProject() {
     category: PROJECT_CATEGORIES[0],
     requiredSkills: [],
     teamSize: 4,
+    existingMembersCount: 0,
     deadline: "",
     whatsappNumber: "",
   });
@@ -81,7 +82,7 @@ export default function CreateProject() {
             onChange={(requiredSkills) => update("requiredSkills", requiredSkills)}
           />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium">Team size</span>
             <input
@@ -91,6 +92,19 @@ export default function CreateProject() {
               className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
               value={form.teamSize}
               onChange={(e) => update("teamSize", e.target.value)}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">
+              Already have
+              <span className="ml-1 font-normal text-slate-400">(offline members)</span>
+            </span>
+            <input
+              type="number"
+              min={0}
+              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-500"
+              value={form.existingMembersCount}
+              onChange={(e) => update("existingMembersCount", e.target.value)}
             />
           </label>
           <label className="block">

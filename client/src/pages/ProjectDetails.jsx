@@ -82,7 +82,9 @@ export default function ProjectDetails() {
   const isOwner = Boolean(myId && ownerId && myId === ownerId);
   const isMember = Boolean(myId && project.members?.some((m) => (m._id || m)?.toString() === myId));
   const match = getSkillMatch(me?.skills || [], project.requiredSkills || []);
-  const spotsLeft = project.teamSize - project.members.length;
+  const existingMembers = project.existingMembersCount || 0;
+  const totalMembers = existingMembers + project.members.length;
+  const spotsLeft = project.teamSize - totalMembers;
 
   let action = null;
   if (isOwner) {
@@ -220,7 +222,10 @@ export default function ProjectDetails() {
             <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-500">
               <span className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5">
                 <Users size={15} className="text-slate-400" />
-                {project.members.length}/{project.teamSize} members
+                {totalMembers}/{project.teamSize} members
+                {existingMembers > 0 && (
+                  <span className="text-xs text-slate-400">({existingMembers} offline)</span>
+                )}
               </span>
               <span className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5">
                 <Calendar size={15} className="text-slate-400" />
@@ -231,7 +236,20 @@ export default function ProjectDetails() {
 
           {/* Team members */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6">
-            <h2 className="text-lg font-semibold">Team Members</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Team Members</h2>
+              <span className="text-sm text-slate-500">
+                {totalMembers}/{project.teamSize}
+                {spotsLeft > 0 && project.isOpen && (
+                  <span className="ml-1 text-indigo-600 font-medium">· {spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</span>
+                )}
+              </span>
+            </div>
+            {existingMembers > 0 && (
+              <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                👥 {existingMembers} member{existingMembers !== 1 ? "s" : ""} already on the team (recruited offline)
+              </p>
+            )}
             <ul className="mt-4 space-y-3">
               {project.members.map((member) => {
                 const memberId = (member._id || member)?.toString();

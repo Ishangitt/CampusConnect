@@ -8,10 +8,12 @@ export default function ProjectCard({ project }) {
       ? `${project.description.slice(0, 110)}...`
       : project.description;
 
-  const memberCount = project.members?.length || 0;
+  const platformMembers = project.members?.length || 0;
+  const existingMembers = project.existingMembersCount || 0;
+  const totalMembers = existingMembers + platformMembers;
   const teamSize = project.teamSize || 0;
-  const spotsLeft = teamSize - memberCount;
-  const fillPercent = teamSize > 0 ? Math.round((memberCount / teamSize) * 100) : 0;
+  const spotsLeft = teamSize - totalMembers;
+  const fillPercent = teamSize > 0 ? Math.round((totalMembers / teamSize) * 100) : 0;
 
   const deadlineDate = project.deadline
     ? new Date(project.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
@@ -54,7 +56,7 @@ export default function ProjectCard({ project }) {
         <div className="flex items-center justify-between mb-1.5">
           <span className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
             <Users size={13} className="text-indigo-400" />
-            {memberCount} of {teamSize} members
+            {totalMembers} of {teamSize} members
           </span>
           {project.isOpen && spotsLeft > 0 ? (
             <span className="text-[11px] font-semibold text-indigo-600">

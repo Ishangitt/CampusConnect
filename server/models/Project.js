@@ -10,6 +10,7 @@ const projectSchema = new mongoose.Schema(
     creatorId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     teamSize: { type: Number, required: true, min: 2 },
+    existingMembersCount: { type: Number, default: 0, min: 0 },
     isOpen: { type: Boolean, default: true },
     deadline: { type: Date, required: true },
   },
