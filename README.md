@@ -1,118 +1,255 @@
 # CampusConnect
 
-CampusConnect is a simple campus collaboration platform where college students can create projects, find teammates, and request to join teams based on their skills.
+**CampusConnect** is a full-stack campus collaboration platform where college students can create projects, find teammates, and manage join requests — all based on real skill matching.
 
-This is a resume / interview demo project built with the MERN stack and Clerk authentication. It is intentionally small: no chat, webhooks, notifications, file uploads, or AI.
+Built with the **MERN stack** + **Clerk** authentication.
 
-## Features
+---
 
-- **Clerk authentication** — sign up, sign in, sign out, and protected routes
-- **Lazy user creation** — the first `GET /api/users/me` after login creates a MongoDB profile if one does not exist (no Clerk webhooks)
-- **Student profile** — name, email, college, branch, year, bio, skills, interests, GitHub, LinkedIn
-- **Predefined skills only** — skills are selected from clickable pills so matching stays exact
-- **Create project** — creator is added as the first member
-- **Browse / search** — open projects only, search by title, filter by category
-- **Project details** — join button states for owner, member, pending, and non-member
-- **Join requests** — owners can accept or reject; a full team auto-closes and remaining pending requests are rejected
-- **Simple skill matching** — `(matched / required) * 100`
-- **Dashboard** — welcome, metrics, created projects, and application status tracking
+## ✨ Features
 
-## Tech stack
+### 👤 Authentication & Profiles
+- Sign up / sign in via **Clerk** (no passwords stored)
+- **Lazy user creation** — MongoDB profile auto-created on first login (no webhooks needed)
+- Student profile: name, college, branch, year, bio, skills, interests, GitHub, LinkedIn
 
-| Layer | Tech |
-| --- | --- |
-| Frontend | React (Vite), Tailwind CSS, React Router, Axios, Clerk React, Lucide React |
-| Backend | Node.js, Express, Mongoose |
-| Database | MongoDB |
-| Auth | Clerk |
+### 📁 Projects
+- Create a project with title, description, category, required skills, team size, deadline, and WhatsApp group
+- Declare how many **offline members** you already have (e.g. "I have 4 already, need 2 more")
+- **Edit** your project anytime — update any field, toggle open/closed
+- **Delete** your project (cascades to all join requests)
+- Auto-closes when team is full; auto-reopens if a member leaves
+- Expired projects (past deadline) are hidden from browse
 
-JavaScript only (no TypeScript).
+### 🔍 Browse & Search
+- Search projects by **title or description**
+- Filter by **category** (Web Dev, Mobile, AI/ML, etc.)
+- **Paginated** results (12 per page, Previous / Next controls)
+- Team progress bar on each card: colour-coded (indigo → amber → grey as team fills)
 
-## Database schema
+### 📬 Join Requests
+- Students can request to join any open project
+- Rejected applicants can re-apply
+- Members can **leave** a project
+- Owners can **accept** or **reject** from the requests page OR directly from the notification bell
 
-Three collections.
+### 🔔 Notifications
+- Bell icon in the header shows **pending join requests** in real time
+- Auto-refreshes every 30 seconds and on window focus
+- Accept / reject directly from the dropdown without navigating away
 
-### Users
+### 📊 Dashboard
+- Welcome message and key metrics (projects created, memberships, pending requests)
+- Table of your created projects with status and pending count
+- List of your applications with status badges
+- Rejected applications show a **"View project to re-apply →"** link
 
+### 👤 Profile
+- View your profile with stats, skills, GitHub/LinkedIn links
+- **My Projects** — all projects you created
+- **Teams I'm In** — projects you've been accepted into
+
+### 🎯 Skill Matching
+- When viewing a project, see your personal **skill match %**
+- Skills are split into "You have" and "Missing" with colour-coded badges
+- Match % is also shown per applicant on the Requests page
+
+### 🔒 Security
+- All routes protected by Clerk session JWT
+- CORS enforced to allowed origins only
+- WhatsApp number only visible to team members
+- Owner-only guards on edit, delete, and request management
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 18 (Vite), Vanilla CSS, React Router v6, Axios |
+| **Backend** | Node.js, Express 4 |
+| **Database** | MongoDB (Mongoose 8) |
+| **Auth** | Clerk (`@clerk/react`, `@clerk/express`) |
+| **Icons** | Lucide React |
+| **Dev tooling** | Concurrently, node --watch |
+
+> JavaScript only — no TypeScript.
+
+---
+
+## 📂 Project Structure
+
+```
+CampusConnect/
+│
+├── package.json              # Root — runs both servers with concurrently
+│
+├── client/                   # Vite + React frontend
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── client.js         # Axios instance + Clerk JWT interceptor
+│   │   ├── components/
+│   │   │   ├── ConfirmModal.jsx   # Reusable confirmation dialog
+│   │   │   ├── EmptyState.jsx     # Empty list placeholder
+│   │   │   ├── Layout.jsx         # App shell (nav + outlet)
+│   │   │   ├── Loader.jsx         # Spinner
+│   │   │   ├── NotificationBell.jsx  # Dropdown bell with accept/reject
+│   │   │   ├── ProjectCard.jsx    # Card with progress bar + spots left
+│   │   │   ├── SkillBadges.jsx    # Coloured skill tags
+│   │   │   └── SkillPicker.jsx    # Clickable pill skill selector
+│   │   ├── constants/
+│   │   │   └── skills.js          # PREDEFINED_SKILLS, PROJECT_CATEGORIES, YEAR_OPTIONS
+│   │   ├── pages/
+│   │   │   ├── CreateProject.jsx  # New project form
+│   │   │   ├── Dashboard.jsx      # Home after login
+│   │   │   ├── EditProject.jsx    # Edit existing project (owner only)
+│   │   │   ├── NotFound.jsx       # 404 page
+│   │   │   ├── Profile.jsx        # View profile + projects + memberships
+│   │   │   ├── ProfileEdit.jsx    # Edit profile
+│   │   │   ├── ProjectDetails.jsx # Full project view + join/leave/delete
+│   │   │   ├── ProjectRequests.jsx# Manage join requests (owner only)
+│   │   │   ├── Projects.jsx       # Browse + search + paginate
+│   │   │   ├── SignInPage.jsx     # Clerk-hosted sign in
+│   │   │   └── SignUpPage.jsx     # Clerk-hosted sign up
+│   │   ├── utils/
+│   │   │   └── skillMatch.js      # getSkillMatch(studentSkills, required)
+│   │   ├── App.jsx                # Routes
+│   │   ├── index.css              # Global styles
+│   │   └── main.jsx               # Entry point + ClerkProvider
+│   ├── .env                       # VITE_CLERK_PUBLISHABLE_KEY, VITE_API_URL
+│   └── vite.config.js
+│
+└── server/                   # Express API
+    ├── config/
+    │   └── db.js                  # Mongoose connection
+    ├── constants/
+    │   └── skills.js              # Same skill/category lists (server-side validation)
+    ├── middleware/
+    │   └── requireDbUser.js       # Clerk auth + lazy user creation
+    ├── models/
+    │   ├── User.js
+    │   ├── Project.js
+    │   └── JoinRequest.js
+    ├── routes/
+    │   ├── users.js               # /api/users/*
+    │   ├── projects.js            # /api/projects/*
+    │   └── joinRequests.js        # /api/join-requests/*
+    ├── index.js                   # Express app + CORS + route mounting
+    ├── .env                       # Secrets (never committed)
+    └── .env.example               # Template
+```
+
+---
+
+## 🗄 Database Schema
+
+### `users`
 ```js
 {
   _id,
-  clerkId,      // unique, from Clerk
+  clerkId,        // unique — from Clerk JWT
   name,
   email,
   college,
   branch,
-  year,
+  year,           // "1st Year" | "2nd Year" | "3rd Year" | "4th Year" | "Alumni"
   bio,
-  skills: [],
+  skills: [],     // subset of PREDEFINED_SKILLS
   interests: [],
   github,
-  linkedin
+  linkedin,
+  createdAt, updatedAt
 }
 ```
+> Passwords are never stored. Clerk owns all authentication.
 
-Passwords are never stored. Clerk owns authentication.
-
-### Projects
-
+### `projects`
 ```js
 {
   _id,
   title,
   description,
-  category,
-  requiredSkills: [],
-  creatorId,
-  members: [],
-  teamSize,
-  isOpen,       // false when members.length == teamSize
+  category,              // one of PROJECT_CATEGORIES
+  requiredSkills: [],    // subset of PREDEFINED_SKILLS
+  whatsappNumber,        // only returned to team members
+  creatorId,             // ref: User
+  members: [],           // ref: User[] — platform-tracked members
+  teamSize,              // total slots
+  existingMembersCount,  // offline members declared by owner (default 0)
+  isOpen,                // false when (existingMembersCount + members.length) >= teamSize
   deadline,
-  createdAt
+  createdAt, updatedAt
 }
 ```
 
-### Join Requests
-
+### `joinrequests`
 ```js
 {
   _id,
-  projectId,
-  studentId,
-  status,       // "pending" | "accepted" | "rejected"
-  createdAt
+  projectId,   // ref: Project
+  studentId,   // ref: User
+  status,      // "pending" | "accepted" | "rejected"
+  createdAt, updatedAt
 }
+// Compound unique index: { projectId, studentId }
 ```
 
-## API
+---
 
-All `/api` routes except `/api/health` require a Clerk session token.
+## 🔌 API Reference
 
-### Users
+All routes require a Clerk session token in `Authorization: Bearer <token>` except `GET /api/health`.
 
-- `GET /api/users/me` — lazy-create + return profile
-- `GET /api/users/me/dashboard` — metrics, created projects, applications
-- `PUT /api/users/profile` — update profile
+### Users — `/api/users`
 
-### Projects
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/me` | Return current user + project metrics |
+| `GET` | `/me/dashboard` | Metrics + created projects + applications |
+| `GET` | `/me/notifications` | Pending join requests for projects I own |
+| `PUT` | `/profile` | Update profile fields |
 
-- `POST /api/projects`
-- `GET /api/projects` — open projects (`?q=` title search, `?category=`)
-- `GET /api/projects/:id`
-- `POST /api/projects/:id/join`
-- `GET /api/projects/:id/requests` — owner only
+### Projects — `/api/projects`
 
-### Join requests
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `POST` | `/` | Any | Create a project |
+| `GET` | `/` | Any | List open, non-expired projects (`?q`, `?category`, `?page`, `?limit`) |
+| `GET` | `/:id` | Any | Get project detail + my join request |
+| `PUT` | `/:id` | Owner | Edit project fields |
+| `DELETE` | `/:id` | Owner | Delete project + cascade delete join requests |
+| `POST` | `/:id/join` | Non-member | Send join request |
+| `DELETE` | `/:id/members/me` | Member | Leave a project |
+| `GET` | `/:id/requests` | Owner | List all join requests for a project |
 
-- `PUT /api/join-requests/:id/accept`
-- `PUT /api/join-requests/:id/reject`
+### Join Requests — `/api/join-requests`
 
-Accept checks that the team is not full, adds the student to `members`, and if the team is then full sets `isOpen: false` and rejects leftover pending requests.
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `PUT` | `/:id/accept` | Owner | Accept request, add to members, auto-close if full |
+| `PUT` | `/:id/reject` | Owner | Reject request |
 
-## Pages
+---
 
-`/sign-in`, `/sign-up`, `/dashboard`, `/profile`, `/profile/edit`, `/projects`, `/projects/create`, `/projects/:id`, `/projects/:id/requests`
+## 🗺 Pages & Routes
 
-## Setup
+| URL | Page | Access |
+|---|---|---|
+| `/sign-in` | Sign In | Public |
+| `/sign-up` | Sign Up | Public |
+| `/dashboard` | Dashboard | Auth |
+| `/profile` | View Profile | Auth |
+| `/profile/edit` | Edit Profile | Auth |
+| `/projects` | Browse Projects | Auth |
+| `/projects/create` | Create Project | Auth |
+| `/projects/:id` | Project Details | Auth |
+| `/projects/:id/edit` | Edit Project | Owner |
+| `/projects/:id/requests` | Manage Requests | Owner |
+| `*` | 404 Not Found | — |
+
+---
+
+## ⚙️ Local Setup
 
 ### 1. Clone and install
 
@@ -123,64 +260,121 @@ npm install
 npm run install:all
 ```
 
-### 2. Clerk
+### 2. Set up Clerk
 
-1. Create an application at [Clerk](https://dashboard.clerk.com)
-2. Copy the **Publishable key** and **Secret key**
-3. In Clerk, add `http://localhost:5173` as an allowed origin
-4. Paste keys into both env files below
+1. Create an app at [dashboard.clerk.com](https://dashboard.clerk.com)
+2. Copy your **Publishable key** and **Secret key**
+3. Add `http://localhost:5173` as an allowed origin in Clerk settings
 
 ### 3. Environment variables
 
-Copy the examples and fill in real values:
-
 ```bash
-cp server/.env.example server/.env
-cp client/.env.example client/.env
+# Windows
+copy server\.env.example server\.env
+copy client\.env.example client\.env
 ```
 
 **`server/.env`**
-
-```
+```env
 PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/campusconnect?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/campusconnect
 CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxx
 CLERK_SECRET_KEY=sk_test_xxxxxxxx
 CLIENT_ORIGIN=http://localhost:5173
 ```
 
 **`client/.env`**
-
-```
+```env
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxx
-VITE_API_URL=/api
+VITE_API_URL=http://localhost:5000/api
 ```
 
 ### 4. Run
-
-From the repo root:
 
 ```bash
 npm run dev
 ```
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:5000
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:5000
+- **Health check:** http://localhost:5000/api/health
 
-Sign up with Clerk, open the dashboard (this creates your MongoDB user), edit your profile and select skills, then create or join a project.
+---
 
-## Demo flow (interview)
-
-1. Sign up as Student A → complete profile skills (e.g. React, Node.js)
-2. Create a project that requires React, Node.js, MongoDB
-3. Sign up as Student B in another browser / incognito → request to join
-4. As Student A, accept or reject on `/projects/:id/requests`
-5. Show skill match % on the project page and application status on the dashboard
-
-## Project structure
+## 🔄 How Authentication Works
 
 ```
-CampusConnect/
-  client/     Vite React app
-  server/     Express API
+Browser  ──────── Clerk JWT ────────▶  Express middleware
+                                        │
+                              requireClerkAuth
+                              (resolves userId from Clerk or JWT)
+                                        │
+                               requireDbUser
+                              (finds User in MongoDB or creates one)
+                                        │
+                              req.dbUser available in all route handlers
 ```
+
+- First login auto-creates a MongoDB user by calling Clerk API to fetch name + email
+- Subsequent requests just look up by `clerkId`
+- Passwords are **never** in your database
+
+---
+
+## 🔁 Core User Flows
+
+### Creating a project
+1. Go to **Create Project**
+2. Fill title, description, category, required skills
+3. Set **team size**, optionally enter how many members you **already have offline**
+4. Set deadline and (optionally) WhatsApp group number
+5. You are automatically the first member
+
+### Joining a project
+1. Browse **Open Projects**, search/filter as needed
+2. Open a project — see your **skill match %**
+3. Click **Request to Join**
+4. Track status on your **Dashboard** under "My Applications"
+
+### Managing requests (owner)
+- Get notified via the **bell icon** in the header
+- Accept or reject directly from the dropdown, or go to the full Requests page
+- Accepting a request automatically adds the student to the team
+- When the team is full, remaining pending requests are auto-rejected and the project closes
+
+---
+
+## 🧑‍💻 Key Design Decisions
+
+| Decision | Reason |
+|---|---|
+| No Clerk webhooks | Lazy user creation on first API call is simpler to deploy |
+| Skills from predefined list | Ensures skill matching is exact, no typo mismatches |
+| `existingMembersCount` field | Lets owners declare offline recruits so available spots are accurate |
+| `isOpen` computed from total filled | Accounts for both platform members and offline members |
+| Expired projects filtered on server | Clients never need to handle expired-project logic |
+| Cascade delete on project | Prevents orphaned join requests in the database |
+| Pagination on GET /projects | Prevents unbounded queries as data grows |
+
+---
+
+## 📦 Dependencies
+
+### Server
+| Package | Purpose |
+|---|---|
+| `express` | HTTP framework |
+| `mongoose` | MongoDB ODM |
+| `@clerk/express` | Clerk server-side auth |
+| `cors` | Cross-origin request handling |
+| `dotenv` | Environment variable loading |
+
+### Client
+| Package | Purpose |
+|---|---|
+| `react` + `react-dom` | UI framework |
+| `react-router-dom` | Client-side routing |
+| `axios` | HTTP client |
+| `@clerk/clerk-react` | Clerk React components + hooks |
+| `lucide-react` | Icon library |
+| `vite` | Build tool + dev server |
